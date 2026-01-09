@@ -1,26 +1,35 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import * as Phaser from "phaser";
-import BubblesScene from "@/games/bubbles/BubblesScene";
+export const dynamic = "force-dynamic";
 
-const GameCanvas = dynamic(() => import("@/components/GameCanvas"), { ssr: false });
+import dynamicImport from "next/dynamic";
+
+const GameCanvas = dynamicImport(() => import("@/components/GameCanvas"), { ssr: false });
 
 export default function BubblesPage() {
-  const makeConfig = (width: number, height: number): Phaser.Types.Core.GameConfig => ({
-    type: Phaser.AUTO,
-    width,
-    height,
-    backgroundColor: "#0b1220",
-    scene: [BubblesScene],
-    physics: { default: "arcade" },
-    scale: { mode: Phaser.Scale.NONE }
-  });
+  const createGame = async (container: HTMLDivElement, width: number, height: number) => {
+    const Phaser = await import("phaser");
+    const SceneMod = await import("@/games/bubbles/BubblesScene");
+    const BubblesScene = SceneMod.default;
+
+    const game = new Phaser.Game({
+      type: Phaser.AUTO,
+      parent: container,
+      width,
+      height,
+      backgroundColor: "#0b1220",
+      scene: [BubblesScene],
+      physics: { default: "arcade" },
+      scale: { mode: Phaser.Scale.NONE }
+    });
+
+    return game;
+  };
 
   return (
     <div className="card canvasWrap">
       <h2>Bubbles</h2>
-      <GameCanvas makeConfig={makeConfig} />
+      <GameCanvas createGame={createGame} />
     </div>
   );
 }

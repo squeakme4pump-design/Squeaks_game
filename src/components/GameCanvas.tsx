@@ -1,27 +1,38 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as Phaser from "phaser";
-import { mountPhaserGame } from "@/lib/phaserGame";
 
 type Props = {
-  makeConfig: (width: number, height: number) => Phaser.Types.Core.GameConfig;
+  createGame: (container: HTMLDivElement, width: number, height: number) => any;
 };
 
-export default function GameCanvas({ makeConfig }: Props) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+export default function GameCanvas({ createGame }: Props) {
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const el = containerRef.current;
+    const el = ref.current;
     if (!el) return;
 
-    const rect = el.getBoundingClientRect();
-    const width = Math.max(320, Math.floor(rect.width));
-    const height = Math.max(320, Math.floor((rect.width * 9) / 16));
+    let game: any = null;
 
-    const { cleanup } = mountPhaserGame(el, makeConfig(width, height));
-    return cleanup;
-  }, [makeConfig]);
+    const start = async () => {
+      const rect = el.getBoundingClientRect();
+      const width = Math.max(320, Math.floor(rect.width || 900));
+      const height = Math.max(320, Math.floor((width * 9) / 16));
 
-  return <div ref={containerRef} className="canvas" />;
+      game = await Promise.resolve(createGame(el, width, height));
+    };
+
+    start();
+
+    return () => {
+      try {
+        game?.destroy?.(true);
+      } catch {}
+      game = null;
+      el.innerHTML = "";
+    };
+  }, [createGame]);
+
+  return <div ref={ref} className="canvas" />;
 }
