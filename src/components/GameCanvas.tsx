@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type Phaser from "phaser";
+import * as Phaser from "phaser";
 import { mountPhaserGame } from "@/lib/phaserGame";
 
 type Props = {
